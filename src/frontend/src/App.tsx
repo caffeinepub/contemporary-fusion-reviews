@@ -1,6 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowRight,
@@ -16,7 +23,10 @@ import {
   Music,
   Music2,
   Play,
+  Search,
   Send,
+  Star,
+  Users,
   X,
   Youtube,
 } from "lucide-react";
@@ -35,6 +45,8 @@ const reviews = [
     title: "Kamasi Washington – Fearless Movement",
     author: "Marcus Rivera",
     date: "March 10, 2026",
+    rating: 4.9,
+    genre: "New Release",
     excerpt:
       "A transcendent double album that pushes the boundaries of jazz into cinematic, spiritual territory with sweeping orchestration and raw emotional depth. Washington draws on gospel, hip-hop, and classical music, weaving them into an expansive sonic tapestry that demands repeated listens.",
   },
@@ -46,6 +58,8 @@ const reviews = [
     title: "Fatoumata Diawara – London Ko",
     author: "Aisha Thompson",
     date: "March 5, 2026",
+    rating: 4.7,
+    genre: "World Fusion",
     excerpt:
       "The Malian singer-guitarist weaves together West African rhythms with contemporary jazz in this stunning live collaboration recorded at the Barbican. Diawara's voice carries the weight of tradition while her arrangements feel thrillingly modern.",
   },
@@ -57,6 +71,8 @@ const reviews = [
     title: "Cécile McLorin Salvant – Mélusine",
     author: "James Chen",
     date: "Feb 28, 2026",
+    rating: 4.8,
+    genre: "New Release",
     excerpt:
       "A hauntingly beautiful concept album inspired by French folk myths, showcasing Salvant's unparalleled vocal artistry and her gift for dramatic storytelling. Each song unfolds like a short film, layered with character and nuance.",
   },
@@ -68,6 +84,8 @@ const reviews = [
     title: "Brad Mehldau Trio – Village Vanguard",
     author: "Sofia Reyes",
     date: "Feb 20, 2026",
+    rating: 4.6,
+    genre: "Live Review",
     excerpt:
       "An intimate evening of modal explorations and reimagined standards at New York's legendary jazz club. Mehldau and his trio locked into a rare telepathic groove, navigating complex harmonic territory with effortless ease.",
   },
@@ -79,6 +97,8 @@ const reviews = [
     title: "Anouar Brahem – Souvenance",
     author: "David Kim",
     date: "Feb 15, 2026",
+    rating: 4.5,
+    genre: "World Fusion",
     excerpt:
       "The Tunisian oud master returns with a meditative suite that blurs the line between Arabic maqam and European classical minimalism. Recorded with a chamber string ensemble in Paris, Souvenance rewards silence and undivided attention.",
   },
@@ -90,6 +110,8 @@ const reviews = [
     title: "Esperanza Spalding – Songwrights Apothecary Lab",
     author: "Nina Patel",
     date: "Feb 8, 2026",
+    rating: 4.4,
+    genre: "New Release",
     excerpt:
       "An adventurous exploration of healing and composition, blending jazz, R&B, and experimental textures into something genuinely singular. Whether or not the science holds, the music is undeniably captivating — bold, tender, and unlike anything else this year.",
   },
@@ -199,6 +221,70 @@ function tagStyle(color: string) {
 }
 
 // ────────────────────────────────────────────────────────────
+// Star Rating component
+// ────────────────────────────────────────────────────────────
+function StarRating({
+  rating,
+  size = "sm",
+}: { rating: number; size?: "sm" | "md" }) {
+  const stars = [1, 2, 3, 4, 5];
+  const iconSize = size === "md" ? "w-4 h-4" : "w-3 h-3";
+  return (
+    <div className="flex items-center gap-0.5">
+      {stars.map((star) => {
+        const filled = rating >= star;
+        const half = !filled && rating >= star - 0.5;
+        return (
+          <span key={star} className="relative inline-flex">
+            {/* empty star */}
+            <Star className={`${iconSize} text-white/20`} />
+            {/* filled overlay */}
+            {(filled || half) && (
+              <span
+                className="absolute inset-0 overflow-hidden"
+                style={{ width: filled ? "100%" : "50%" }}
+              >
+                <Star className={`${iconSize} text-amber-400 fill-amber-400`} />
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────
+// Animated stat number
+// ────────────────────────────────────────────────────────────
+function AnimatedStat({
+  value,
+  label,
+  icon: Icon,
+}: { value: string; label: string; icon: React.ElementType }) {
+  return (
+    <div
+      className="flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-white/10 backdrop-blur-md"
+      style={{ background: "rgba(255,255,255,0.04)" }}
+    >
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(124,58,237,0.4), rgba(56,189,248,0.2))",
+        }}
+      >
+        <Icon className="w-4 h-4 text-purple-300" />
+      </div>
+      <div>
+        <div className="text-white font-bold text-lg leading-none">{value}</div>
+        <div className="text-white/50 text-xs mt-0.5">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────
 // Navbar
 // ────────────────────────────────────────────────────────────
 function Navbar() {
@@ -209,7 +295,6 @@ function Navbar() {
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 60);
-      // track active section
       const sections = ["home", "reviews", "curated", "footer"];
       for (const id of sections.slice().reverse()) {
         const el = document.getElementById(id);
@@ -254,7 +339,6 @@ function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
         <a
           href="#home"
           className="flex items-center gap-2.5 group"
@@ -273,7 +357,6 @@ function Navbar() {
           </span>
         </a>
 
-        {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => {
             const isActive = activeSection === link.section;
@@ -299,7 +382,6 @@ function Navbar() {
           })}
         </div>
 
-        {/* Mobile hamburger */}
         <button
           type="button"
           className="md:hidden text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-all duration-200"
@@ -311,7 +393,6 @@ function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden bg-black/85 backdrop-blur-xl border-t border-white/8">
           <div className="px-6 py-5 flex flex-col gap-1">
@@ -351,7 +432,6 @@ function HeroSection() {
         backgroundPosition: "center",
       }}
     >
-      {/* Layered gradient overlay */}
       <div
         className="absolute inset-0"
         style={{
@@ -360,7 +440,6 @@ function HeroSection() {
         }}
       />
 
-      {/* Decorative orbs */}
       <div
         className="absolute top-1/4 left-[15%] w-[28rem] h-[28rem] rounded-full opacity-20 blur-3xl animate-float-orb pointer-events-none"
         style={{
@@ -381,9 +460,7 @@ function HeroSection() {
         }}
       />
 
-      {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 pb-32 fade-in-up">
-        {/* Featured pill */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-400/50 bg-violet-100/90 text-black text-xs font-bold uppercase tracking-widest mb-8 shadow-lg">
           <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
           Featured Review
@@ -429,7 +506,6 @@ function HeroSection() {
         </div>
       </div>
 
-      {/* Refined scroll indicator */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
         <span className="text-white/45 text-[10px] uppercase tracking-[0.2em] font-medium">
           Scroll
@@ -445,6 +521,55 @@ function HeroSection() {
 // ────────────────────────────────────────────────────────────
 function ReviewsSection() {
   const { ref, visible } = useScrollReveal();
+  const [activeGenre, setActiveGenre] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [showAll, setShowAll] = useState(false);
+  const [filterKey, setFilterKey] = useState(0);
+
+  const genres = ["All", "New Release", "World Fusion", "Live Review"];
+
+  // Featured = highest rated
+  const featuredReview = reviews.reduce(
+    (best, r) => (r.rating > best.rating ? r : best),
+    reviews[0],
+  );
+
+  // Filter + search + sort
+  const filtered = reviews
+    .filter((r) => {
+      const matchGenre = activeGenre === "All" || r.genre === activeGenre;
+      const q = searchQuery.toLowerCase();
+      const matchSearch =
+        !q ||
+        r.title.toLowerCase().includes(q) ||
+        r.author.toLowerCase().includes(q);
+      return matchGenre && matchSearch;
+    })
+    .sort((a, b) => {
+      if (sortOrder === "newest") return b.id - a.id;
+      if (sortOrder === "oldest") return a.id - b.id;
+      return b.rating - a.rating;
+    });
+
+  const displayed = showAll ? filtered : filtered.slice(0, 3);
+
+  const handleFilterChange = (genre: string) => {
+    setActiveGenre(genre);
+    setFilterKey((k) => k + 1);
+    setShowAll(false);
+  };
+
+  const handleSearch = (q: string) => {
+    setSearchQuery(q);
+    setFilterKey((k) => k + 1);
+    setShowAll(false);
+  };
+
+  const handleSort = (val: string) => {
+    setSortOrder(val);
+    setFilterKey((k) => k + 1);
+  };
 
   return (
     <section
@@ -458,29 +583,25 @@ function ReviewsSection() {
           "linear-gradient(180deg, #050508 0%, #0d0418 35%, #100520 60%, #080310 85%, #050508 100%)",
       }}
     >
-      {/* Deep purple radial glow — top left */}
+      {/* Glow orbs */}
       <div
         className="absolute top-0 left-[10%] w-[40rem] h-[40rem] rounded-full opacity-[0.12] blur-[120px] pointer-events-none"
         style={{
           background: "radial-gradient(circle, #7c3aed 0%, transparent 65%)",
         }}
       />
-      {/* Faint blue glow — bottom right */}
       <div
         className="absolute bottom-0 right-[8%] w-[32rem] h-[32rem] rounded-full opacity-[0.10] blur-[100px] pointer-events-none"
         style={{
           background: "radial-gradient(circle, #38bdf8 0%, transparent 65%)",
         }}
       />
-      {/* Subtle warm accent — mid center */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50rem] h-[20rem] rounded-full opacity-[0.06] blur-[80px] pointer-events-none"
         style={{
           background: "radial-gradient(ellipse, #9d4edd 0%, transparent 70%)",
         }}
       />
-
-      {/* Subtle dot-grid background pattern */}
       <div
         className="absolute inset-0 opacity-[0.025] pointer-events-none"
         style={{
@@ -489,8 +610,6 @@ function ReviewsSection() {
           backgroundSize: "36px 36px",
         }}
       />
-
-      {/* Thin top separator line */}
       <div
         className="absolute top-0 left-0 right-0 h-px"
         style={{
@@ -501,8 +620,7 @@ function ReviewsSection() {
 
       <div className="relative z-10 py-28 px-6 max-w-7xl mx-auto">
         {/* Heading */}
-        <div className="mb-16">
-          {/* Reviews pill badge */}
+        <div className="mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-100 border border-violet-300 text-black text-xs font-bold uppercase tracking-widest mb-5 shadow-sm">
             <Music2 className="w-3 h-3 text-violet-600" />
             Reviews
@@ -516,74 +634,342 @@ function ReviewsSection() {
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
-          {reviews.map((review, i) => (
-            <article
-              key={review.id}
-              data-ocid={`reviews.item.${i + 1}`}
-              className="group rounded-2xl overflow-hidden border border-white/8 card-glow card-border-accent cursor-pointer transition-all duration-300 hover:border-purple-500/30"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                transitionDelay: `${i * 50}ms`,
-                boxShadow:
-                  "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
-              }}
-            >
-              {/* Thumbnail */}
-              <div className="relative overflow-hidden h-52">
-                <img
-                  src={review.img}
-                  alt={review.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+        {/* Stats strip */}
+        <div
+          data-ocid="reviews.stats.panel"
+          className="flex flex-wrap gap-3 mb-10"
+        >
+          <AnimatedStat value="12" label="Reviews Published" icon={Music2} />
+          <AnimatedStat value="6" label="Artists Featured" icon={Users} />
+          <AnimatedStat value="3" label="Genres Covered" icon={Star} />
+        </div>
+
+        {/* Featured spotlight card */}
+        <div
+          data-ocid="reviews.featured.card"
+          className="mb-14 rounded-3xl overflow-hidden border border-purple-500/30 relative group"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            boxShadow:
+              "0 0 60px rgba(124,58,237,0.25), 0 4px 40px rgba(0,0,0,0.5)",
+          }}
+        >
+          {/* Glowing border pulse */}
+          <div className="absolute inset-0 rounded-3xl border border-purple-500/0 group-hover:border-purple-500/50 transition-all duration-500 pointer-events-none" />
+
+          <div className="flex flex-col lg:flex-row">
+            {/* Image — left ~45% */}
+            <div className="relative lg:w-[45%] h-72 lg:h-auto overflow-hidden flex-shrink-0">
+              <img
+                src={featuredReview.img}
+                alt={featuredReview.title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/60 hidden lg:block" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent lg:hidden" />
+              {/* Rating badge over image */}
+              <div
+                className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md border border-amber-400/40"
+                style={{ background: "rgba(0,0,0,0.65)" }}
+              >
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span className="text-amber-300 font-bold text-sm">
+                  {featuredReview.rating}
+                </span>
+              </div>
+              {/* Featured label */}
+              <div className="absolute top-4 left-4">
                 <span
-                  className={`absolute top-3 left-3 text-xs px-2.5 py-1 rounded-full backdrop-blur-sm ${tagStyle(
-                    review.tagColor,
-                  )}`}
+                  className="text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #7c3aed, #4B0082)",
+                  }}
                 >
-                  {review.tag}
+                  ★ Editor's Pick
+                </span>
+              </div>
+            </div>
+
+            {/* Content — right */}
+            <div className="flex-1 p-8 lg:p-10 flex flex-col justify-center">
+              <span
+                className={`inline-block w-fit text-xs px-2.5 py-1 rounded-full mb-4 ${tagStyle(featuredReview.tagColor)}`}
+              >
+                {featuredReview.tag}
+              </span>
+
+              <h3 className="font-display text-2xl sm:text-3xl font-bold text-white leading-tight mb-3">
+                {featuredReview.title}
+              </h3>
+
+              <div className="flex items-center gap-3 mb-4">
+                <StarRating rating={featuredReview.rating} size="md" />
+                <span className="text-amber-300 font-bold text-sm">
+                  {featuredReview.rating} / 5
                 </span>
               </div>
 
-              {/* Body */}
-              <div className="p-6">
-                <h3 className="font-display text-white font-semibold text-[1.05rem] leading-snug mb-3 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">
-                  {review.title}
-                </h3>
+              <div className="flex items-center gap-2 text-white/50 text-xs mb-5">
+                <span className="author-avatar">
+                  <Music2 className="w-2.5 h-2.5 text-purple-400" />
+                </span>
+                <span className="font-medium text-white/70">
+                  {featuredReview.author}
+                </span>
+                <span className="text-white/30">·</span>
+                <span>{featuredReview.date}</span>
+              </div>
 
-                {/* Author row with avatar */}
-                <div className="flex items-center gap-2 text-white/50 text-xs mb-3">
-                  <span className="author-avatar">
-                    <Music2 className="w-2.5 h-2.5 text-purple-400" />
+              <p className="text-white/60 text-sm sm:text-base leading-relaxed mb-7 line-clamp-3">
+                {featuredReview.excerpt}
+              </p>
+
+              <Button
+                data-ocid="reviews.featured.primary_button"
+                className="btn-shimmer w-fit min-h-[48px] px-8 text-sm font-semibold text-white rounded-full transition-all duration-300 hover:scale-105 hover:shadow-[0_0_32px_rgba(124,58,237,0.55)]"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #7c3aed 0%, #4B0082 55%, #0ea5e9 100%)",
+                }}
+              >
+                Read Full Review
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter + Search + Sort toolbar */}
+        <div className="flex flex-col gap-4 mb-10">
+          {/* Genre filter tabs */}
+          <div className="flex flex-wrap gap-2">
+            {genres.map((genre) => (
+              <button
+                key={genre}
+                type="button"
+                data-ocid="reviews.filter.tab"
+                onClick={() => handleFilterChange(genre)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-250 ${
+                  activeGenre === genre
+                    ? "text-white border-transparent shadow-[0_0_16px_rgba(124,58,237,0.4)]"
+                    : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/8 hover:border-white/20"
+                }`}
+                style={
+                  activeGenre === genre
+                    ? {
+                        background:
+                          "linear-gradient(135deg, #7c3aed, #4B0082 60%, #0ea5e9)",
+                      }
+                    : {}
+                }
+              >
+                {genre}
+              </button>
+            ))}
+          </div>
+
+          {/* Search + Sort row */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/35 pointer-events-none" />
+              <Input
+                data-ocid="reviews.search.search_input"
+                type="text"
+                placeholder="Search by title or artist…"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-purple-500/50 focus:bg-white/8 rounded-xl transition-all duration-200 min-h-[44px]"
+              />
+            </div>
+            {/* Sort */}
+            <Select value={sortOrder} onValueChange={handleSort}>
+              <SelectTrigger
+                data-ocid="reviews.sort.select"
+                className="w-full sm:w-[170px] bg-white/5 border-white/10 text-white/70 text-sm rounded-xl min-h-[44px] focus:border-purple-500/50"
+              >
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#130a25] border-white/10 text-white">
+                <SelectItem
+                  value="newest"
+                  className="text-white/80 focus:bg-purple-900/40 focus:text-white"
+                >
+                  Newest First
+                </SelectItem>
+                <SelectItem
+                  value="oldest"
+                  className="text-white/80 focus:bg-purple-900/40 focus:text-white"
+                >
+                  Oldest First
+                </SelectItem>
+                <SelectItem
+                  value="rating"
+                  className="text-white/80 focus:bg-purple-900/40 focus:text-white"
+                >
+                  Highest Rated
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Results count */}
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-white/40 text-sm">
+            {filtered.length === 0
+              ? "No reviews found"
+              : `Showing ${displayed.length} of ${filtered.length} reviews`}
+          </span>
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => handleSearch("")}
+              className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 transition-colors px-2 py-0.5 rounded-full border border-purple-500/30 hover:border-purple-400/50"
+            >
+              <X className="w-3 h-3" /> Clear
+            </button>
+          )}
+        </div>
+
+        {/* Grid */}
+        {filtered.length === 0 ? (
+          <div data-ocid="reviews.empty_state" className="text-center py-20">
+            <Music2 className="w-12 h-12 text-white/20 mx-auto mb-4" />
+            <p className="text-white/40 text-base">
+              No reviews match your search.
+            </p>
+          </div>
+        ) : (
+          <div
+            key={filterKey}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 reviews-grid-animate"
+          >
+            {displayed.map((review, i) => (
+              <article
+                key={review.id}
+                data-ocid={`reviews.item.${i + 1}`}
+                className="group rounded-2xl overflow-hidden border border-white/8 card-glow card-border-accent cursor-pointer transition-all duration-300 hover:border-purple-500/30 hover:-translate-y-1"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  animationDelay: `${i * 80}ms`,
+                  boxShadow:
+                    "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
+                }}
+              >
+                {/* Thumbnail */}
+                <div className="relative overflow-hidden h-52">
+                  <img
+                    src={review.img}
+                    alt={review.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+
+                  {/* Hover overlay with rating + genre */}
+                  <div
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background: "rgba(13,4,24,0.72)",
+                      backdropFilter: "blur(2px)",
+                    }}
+                  >
+                    <StarRating rating={review.rating} size="md" />
+                    <span className="text-amber-300 font-bold text-lg">
+                      {review.rating}
+                    </span>
+                    <span
+                      className={`text-xs px-2.5 py-1 rounded-full ${tagStyle(review.tagColor)}`}
+                    >
+                      {review.genre}
+                    </span>
+                  </div>
+
+                  <span
+                    className={`absolute top-3 left-3 text-xs px-2.5 py-1 rounded-full backdrop-blur-sm ${tagStyle(review.tagColor)}`}
+                  >
+                    {review.tag}
                   </span>
-                  <span className="font-medium text-white/65">
-                    {review.author}
-                  </span>
-                  <span className="text-white/30">·</span>
-                  <span>{review.date}</span>
+
+                  {/* Rating chip always visible */}
+                  <div
+                    className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full backdrop-blur-md border border-amber-400/30"
+                    style={{ background: "rgba(0,0,0,0.60)" }}
+                  >
+                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                    <span className="text-amber-300 text-xs font-bold">
+                      {review.rating}
+                    </span>
+                  </div>
                 </div>
 
-                <p className="text-white/55 text-sm leading-relaxed line-clamp-3 mb-5">
-                  {review.excerpt}
-                </p>
+                {/* Body */}
+                <div className="p-6">
+                  <h3 className="font-display text-white font-semibold text-[1.05rem] leading-snug mb-3 line-clamp-2 group-hover:text-purple-200 transition-colors duration-300">
+                    {review.title}
+                  </h3>
 
-                {/* Editorial read-more link */}
-                <button
-                  type="button"
-                  data-ocid={`reviews.read_more.button.${i + 1}`}
-                  className="editorial-link text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors duration-200"
-                >
-                  Read More
-                  <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+                  {/* Stars */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <StarRating rating={review.rating} />
+                    <span className="text-amber-300/80 text-xs font-semibold">
+                      {review.rating}
+                    </span>
+                  </div>
+
+                  {/* Author row */}
+                  <div className="flex items-center gap-2 text-white/50 text-xs mb-3">
+                    <span className="author-avatar">
+                      <Music2 className="w-2.5 h-2.5 text-purple-400" />
+                    </span>
+                    <span className="font-medium text-white/65">
+                      {review.author}
+                    </span>
+                    <span className="text-white/30">·</span>
+                    <span>{review.date}</span>
+                  </div>
+
+                  <p className="text-white/55 text-sm leading-relaxed line-clamp-3 mb-5">
+                    {review.excerpt}
+                  </p>
+
+                  <button
+                    type="button"
+                    data-ocid={`reviews.read_more.button.${i + 1}`}
+                    className="editorial-link text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors duration-200"
+                  >
+                    Read More
+                    <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+
+        {/* Load More / Show Less */}
+        {filtered.length > 3 && (
+          <div className="flex justify-center mt-10">
+            <button
+              type="button"
+              data-ocid="reviews.load_more.button"
+              onClick={() => setShowAll((prev) => !prev)}
+              className="btn-shimmer px-8 py-3 rounded-full text-sm font-semibold text-white border border-purple-500/40 hover:border-purple-400/70 transition-all duration-300 hover:shadow-[0_0_24px_rgba(124,58,237,0.35)] hover:scale-105"
+              style={{ background: "rgba(124,58,237,0.12)" }}
+            >
+              {showAll
+                ? "Show Less"
+                : `Load More (${filtered.length - 3} more)`}
+              <ChevronDown
+                className={`ml-2 w-4 h-4 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
+              />
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -607,7 +993,6 @@ function CuratedSection() {
           "linear-gradient(180deg, #0A0A0F 0%, #0e0920 50%, #0A0A0F 100%)",
       }}
     >
-      {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -618,7 +1003,6 @@ function CuratedSection() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Heading */}
         <div className="mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-100 border border-sky-300 text-black text-xs font-bold uppercase tracking-widest mb-5 shadow-sm">
             <Calendar className="w-3 h-3 text-sky-600" />
@@ -660,7 +1044,6 @@ function CuratedSection() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Videos */}
           <TabsContent value="videos">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {videos.map((video, i) => (
@@ -701,7 +1084,6 @@ function CuratedSection() {
             </div>
           </TabsContent>
 
-          {/* Events */}
           <TabsContent value="events">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {events.map((event, i) => (
@@ -735,7 +1117,6 @@ function CuratedSection() {
                     <p className="text-white/52 text-sm mb-5 leading-relaxed line-clamp-3 flex-1">
                       {event.desc}
                     </p>
-                    {/* Full-width tap target button at bottom */}
                     <Button
                       data-ocid={`curated.event.button.${i + 1}`}
                       size="sm"
@@ -800,7 +1181,6 @@ function Footer() {
 
   return (
     <footer id="footer" className="relative" style={{ background: "#05050a" }}>
-      {/* Top border gradient */}
       <div
         className="h-px w-full"
         style={{
@@ -811,7 +1191,6 @@ function Footer() {
 
       <div className="max-w-7xl mx-auto px-6 py-16 lg:py-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
-          {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
               <div
@@ -833,7 +1212,6 @@ function Footer() {
             </p>
           </div>
 
-          {/* Categories */}
           <div>
             <h4 className="text-white font-bold text-xs mb-6 uppercase tracking-[0.15em]">
               Categories
@@ -853,7 +1231,6 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Contact & Social */}
           <div>
             <h4 className="text-white font-bold text-xs mb-6 uppercase tracking-[0.15em]">
               Connect
@@ -883,7 +1260,6 @@ function Footer() {
             </div>
           </div>
 
-          {/* Newsletter */}
           <div>
             <h4 className="text-white font-bold text-xs mb-2 uppercase tracking-[0.15em]">
               Stay in the Loop
@@ -892,7 +1268,6 @@ function Footer() {
               Latest reviews and events, delivered to your inbox. No spam, ever.
             </p>
             <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
-              {/* Side-by-side on desktop */}
               <div className="flex gap-2">
                 <Input
                   data-ocid="footer.newsletter.input"
@@ -941,7 +1316,6 @@ function Footer() {
           </div>
         </div>
 
-        {/* Divider + copyright */}
         <div className="mt-16 pt-8 border-t border-white/6 flex flex-col sm:flex-row justify-between items-center gap-4 text-white/30 text-xs">
           <p>
             © {new Date().getFullYear()} Contemporary Fusion Reviews. All rights
