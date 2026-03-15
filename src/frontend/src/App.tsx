@@ -10,6 +10,12 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   ArrowRight,
   Calendar,
   ChevronDown,
@@ -46,6 +52,7 @@ const reviews = [
     author: "Marcus Rivera",
     date: "March 10, 2026",
     rating: 4.9,
+    readTime: "7 min read",
     genre: "New Release",
     excerpt:
       "A transcendent double album that pushes the boundaries of jazz into cinematic, spiritual territory with sweeping orchestration and raw emotional depth. Washington draws on gospel, hip-hop, and classical music, weaving them into an expansive sonic tapestry that demands repeated listens.",
@@ -59,6 +66,7 @@ const reviews = [
     author: "Aisha Thompson",
     date: "March 5, 2026",
     rating: 4.7,
+    readTime: "5 min read",
     genre: "World Fusion",
     excerpt:
       "The Malian singer-guitarist weaves together West African rhythms with contemporary jazz in this stunning live collaboration recorded at the Barbican. Diawara's voice carries the weight of tradition while her arrangements feel thrillingly modern.",
@@ -72,6 +80,7 @@ const reviews = [
     author: "James Chen",
     date: "Feb 28, 2026",
     rating: 4.8,
+    readTime: "6 min read",
     genre: "New Release",
     excerpt:
       "A hauntingly beautiful concept album inspired by French folk myths, showcasing Salvant's unparalleled vocal artistry and her gift for dramatic storytelling. Each song unfolds like a short film, layered with character and nuance.",
@@ -85,6 +94,7 @@ const reviews = [
     author: "Sofia Reyes",
     date: "Feb 20, 2026",
     rating: 4.6,
+    readTime: "4 min read",
     genre: "Live Review",
     excerpt:
       "An intimate evening of modal explorations and reimagined standards at New York's legendary jazz club. Mehldau and his trio locked into a rare telepathic groove, navigating complex harmonic territory with effortless ease.",
@@ -98,6 +108,7 @@ const reviews = [
     author: "David Kim",
     date: "Feb 15, 2026",
     rating: 4.5,
+    readTime: "5 min read",
     genre: "World Fusion",
     excerpt:
       "The Tunisian oud master returns with a meditative suite that blurs the line between Arabic maqam and European classical minimalism. Recorded with a chamber string ensemble in Paris, Souvenance rewards silence and undivided attention.",
@@ -111,6 +122,7 @@ const reviews = [
     author: "Nina Patel",
     date: "Feb 8, 2026",
     rating: 4.4,
+    readTime: "4 min read",
     genre: "New Release",
     excerpt:
       "An adventurous exploration of healing and composition, blending jazz, R&B, and experimental textures into something genuinely singular. Whether or not the science holds, the music is undeniably captivating — bold, tender, and unlike anything else this year.",
@@ -524,16 +536,32 @@ function ReviewsSection() {
   const [activeGenre, setActiveGenre] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
-  const [showAll, setShowAll] = useState(false);
   const [filterKey, setFilterKey] = useState(0);
+  const [activeMood, setActiveMood] = useState("All Vibes");
 
   const genres = ["All", "New Release", "World Fusion", "Live Review"];
+  const moods = [
+    "All Vibes",
+    "Introspective",
+    "Energetic",
+    "Meditative",
+    "Experimental",
+    "Celebratory",
+  ];
 
   // Featured = highest rated
   const featuredReview = reviews.reduce(
     (best, r) => (r.rating > best.rating ? r : best),
     reviews[0],
   );
+
+  // Trending = second highest rated (not featured)
+  const trendingReview = [...reviews]
+    .filter((r) => r.id !== featuredReview.id)
+    .reduce(
+      (best, r) => (r.rating > best.rating ? r : best),
+      reviews.find((r) => r.id !== featuredReview.id)!,
+    );
 
   // Filter + search + sort
   const filtered = reviews
@@ -552,18 +580,16 @@ function ReviewsSection() {
       return b.rating - a.rating;
     });
 
-  const displayed = showAll ? filtered : filtered.slice(0, 3);
+  const displayed = filtered;
 
   const handleFilterChange = (genre: string) => {
     setActiveGenre(genre);
     setFilterKey((k) => k + 1);
-    setShowAll(false);
   };
 
   const handleSearch = (q: string) => {
     setSearchQuery(q);
     setFilterKey((k) => k + 1);
-    setShowAll(false);
   };
 
   const handleSort = (val: string) => {
@@ -583,6 +609,15 @@ function ReviewsSection() {
           "linear-gradient(180deg, #050508 0%, #0d0418 35%, #100520 60%, #080310 85%, #050508 100%)",
       }}
     >
+      {/* Concert background image */}
+      <img
+        src="/assets/generated/reviews-concert-bg.dim_1600x900.jpg"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+        style={{ opacity: 0.12 }}
+      />
+
       {/* Glow orbs */}
       <div
         className="absolute top-0 left-[10%] w-[40rem] h-[40rem] rounded-full opacity-[0.12] blur-[120px] pointer-events-none"
@@ -625,10 +660,14 @@ function ReviewsSection() {
             <Music2 className="w-3 h-3 text-violet-600" />
             Reviews
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-white section-underline">
+          <h2 className="font-display text-4xl sm:text-5xl font-bold text-white">
             Latest Reviews
           </h2>
-          <p className="text-white/55 mt-8 text-base max-w-lg leading-relaxed">
+          <div
+            className="w-16 h-1 rounded-full mt-3 mb-5"
+            style={{ background: "linear-gradient(90deg, #7c3aed, #0ea5e9)" }}
+          />
+          <p className="text-white/55 mt-2 text-base max-w-lg leading-relaxed">
             Fresh perspectives on the albums and performances shaping
             contemporary jazz and world fusion.
           </p>
@@ -642,6 +681,7 @@ function ReviewsSection() {
           <AnimatedStat value="12" label="Reviews Published" icon={Music2} />
           <AnimatedStat value="6" label="Artists Featured" icon={Users} />
           <AnimatedStat value="3" label="Genres Covered" icon={Star} />
+          <AnimatedStat value="4.7" label="Avg Rating" icon={Star} />
         </div>
 
         {/* Featured spotlight card */}
@@ -737,6 +777,29 @@ function ReviewsSection() {
                 Read Full Review
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      data-ocid="reviews.featured.secondary_button"
+                      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border border-white/20 transition-all duration-200 hover:border-purple-400/50 hover:shadow-[0_0_16px_rgba(124,58,237,0.4)]"
+                      style={{
+                        background: "rgba(255,255,255,0.08)",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    >
+                      <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="bg-[#1a0a2e] border-purple-500/30 text-white text-xs"
+                  >
+                    Preview coming soon
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
@@ -813,6 +876,30 @@ function ReviewsSection() {
                 </SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Mood / Vibe filter row */}
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+            {moods.map((mood) => (
+              <button
+                key={mood}
+                type="button"
+                data-ocid="reviews.mood.tab"
+                onClick={() => setActiveMood(mood)}
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
+                  activeMood === mood
+                    ? "text-white border-purple-400/60 shadow-[0_0_10px_rgba(124,58,237,0.3)]"
+                    : "bg-white/3 border-white/8 text-white/40 hover:text-white/70 hover:border-white/20"
+                }`}
+                style={
+                  activeMood === mood
+                    ? { background: "rgba(124,58,237,0.25)" }
+                    : {}
+                }
+              >
+                {mood}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -895,6 +982,21 @@ function ReviewsSection() {
                     {review.tag}
                   </span>
 
+                  {/* Trending badge */}
+                  {review.id === trendingReview.id && (
+                    <div className="absolute top-3 left-3 mt-7">
+                      <span
+                        className="text-xs px-2.5 py-1 rounded-full font-bold text-black"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #f59e0b, #ea580c)",
+                        }}
+                      >
+                        🔥 Trending
+                      </span>
+                    </div>
+                  )}
+
                   {/* Rating chip always visible */}
                   <div
                     className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full backdrop-blur-md border border-amber-400/30"
@@ -922,7 +1024,7 @@ function ReviewsSection() {
                   </div>
 
                   {/* Author row */}
-                  <div className="flex items-center gap-2 text-white/50 text-xs mb-3">
+                  <div className="flex items-center gap-2 text-white/50 text-xs mb-3 flex-wrap">
                     <span className="author-avatar">
                       <Music2 className="w-2.5 h-2.5 text-purple-400" />
                     </span>
@@ -931,43 +1033,55 @@ function ReviewsSection() {
                     </span>
                     <span className="text-white/30">·</span>
                     <span>{review.date}</span>
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-white/50 ml-auto">
+                      <Clock className="w-3 h-3" />
+                      {
+                        (review as typeof review & { readTime: string })
+                          .readTime
+                      }
+                    </span>
                   </div>
 
                   <p className="text-white/55 text-sm leading-relaxed line-clamp-3 mb-5">
                     {review.excerpt}
                   </p>
 
-                  <button
-                    type="button"
-                    data-ocid={`reviews.read_more.button.${i + 1}`}
-                    className="editorial-link text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors duration-200"
-                  >
-                    Read More
-                    <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      data-ocid={`reviews.read_more.button.${i + 1}`}
+                      className="editorial-link text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors duration-200"
+                    >
+                      Read More
+                      <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                    </button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            data-ocid={`reviews.play.button.${i + 1}`}
+                            className="w-8 h-8 rounded-full flex items-center justify-center border border-white/15 transition-all duration-200 hover:border-purple-400/50 hover:shadow-[0_0_12px_rgba(124,58,237,0.35)]"
+                            style={{
+                              background: "rgba(255,255,255,0.07)",
+                              backdropFilter: "blur(8px)",
+                            }}
+                          >
+                            <Play className="w-3.5 h-3.5 text-white/70 fill-white/70 ml-0.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="bg-[#1a0a2e] border-purple-500/30 text-white text-xs"
+                        >
+                          Preview coming soon
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
               </article>
             ))}
-          </div>
-        )}
-
-        {/* Load More / Show Less */}
-        {filtered.length > 3 && (
-          <div className="flex justify-center mt-10">
-            <button
-              type="button"
-              data-ocid="reviews.load_more.button"
-              onClick={() => setShowAll((prev) => !prev)}
-              className="btn-shimmer px-8 py-3 rounded-full text-sm font-semibold text-white border border-purple-500/40 hover:border-purple-400/70 transition-all duration-300 hover:shadow-[0_0_24px_rgba(124,58,237,0.35)] hover:scale-105"
-              style={{ background: "rgba(124,58,237,0.12)" }}
-            >
-              {showAll
-                ? "Show Less"
-                : `Load More (${filtered.length - 3} more)`}
-              <ChevronDown
-                className={`ml-2 w-4 h-4 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
-              />
-            </button>
           </div>
         )}
       </div>
@@ -993,8 +1107,17 @@ function CuratedSection() {
           "linear-gradient(180deg, #0A0A0F 0%, #0e0920 50%, #0A0A0F 100%)",
       }}
     >
+      {/* Neon depth orbs */}
+      <div className="absolute top-0 left-0 w-[35rem] h-[35rem] bg-purple-700 opacity-[0.12] blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] bg-violet-600 opacity-[0.10] blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-sky-500 opacity-[0.08] blur-[80px] rounded-full pointer-events-none" />
+      {/* Radial glow behind heading */}
       <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        className="absolute top-20 left-1/4 w-[20rem] h-[10rem] opacity-[0.07] blur-[60px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(ellipse, #a855f7, transparent)" }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.045] pointer-events-none"
         style={{
           backgroundImage:
             "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)",
@@ -1140,7 +1263,7 @@ function CuratedSection() {
 }
 
 // ────────────────────────────────────────────────────────────
-// Footer
+// Footer / Contact
 // ────────────────────────────────────────────────────────────
 function Footer() {
   const { actor } = useActor();
@@ -1180,158 +1303,279 @@ function Footer() {
   ];
 
   return (
-    <footer id="footer" className="relative" style={{ background: "#05050a" }}>
+    <footer
+      id="footer"
+      className="relative overflow-hidden"
+      style={{ background: "#05050a" }}
+    >
+      {/* Subtle depth orbs */}
+      <div className="absolute top-0 right-1/4 w-[30rem] h-[30rem] bg-purple-800 opacity-[0.12] blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-[24rem] h-[24rem] bg-violet-700 opacity-[0.10] blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60rem] h-[30rem] bg-purple-700 opacity-[0.08] blur-[160px] rounded-full pointer-events-none" />
+
+      {/* Neon divider */}
       <div
         className="h-px w-full"
         style={{
           background:
             "linear-gradient(90deg, transparent, #7c3aed 30%, #38bdf8 70%, transparent)",
+          boxShadow: "0 0 12px rgba(124,58,237,0.4)",
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-16 lg:py-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
-                style={{
-                  background: "linear-gradient(135deg, #7c3aed, #38bdf8)",
-                }}
-              >
-                <Music className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-white font-bold text-sm">
-                Contemporary{" "}
-                <span className="gradient-text font-extrabold">Fusion</span>
-              </span>
+      {/* Contact Hero Area */}
+      <div
+        className="max-w-7xl mx-auto px-6 pt-24 pb-16"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 70%)",
+        }}
+      >
+        <div className="text-center mb-16">
+          <div
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-black text-xs font-bold uppercase tracking-widest mb-5"
+            style={{
+              background: "rgba(255,255,255,0.95)",
+              boxShadow:
+                "0 0 20px rgba(255,255,255,0.6), 0 0 40px rgba(200,180,255,0.4), 0 0 60px rgba(124,58,237,0.25)",
+            }}
+          >
+            <Mail className="w-3 h-3 text-black" />
+            Contact
+          </div>
+          <h2
+            className="font-display text-4xl sm:text-5xl font-bold mb-4"
+            style={{
+              background: "linear-gradient(135deg, #e879f9, #a855f7, #38bdf8)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Stay Connected
+          </h2>
+          <p className="text-white/50 text-base max-w-md mx-auto leading-relaxed">
+            Join our community of jazz and world fusion enthusiasts. Get the
+            latest reviews, events, and artist features delivered to you.
+          </p>
+        </div>
+
+        {/* Contact cards row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto mb-16">
+          {/* Email card */}
+          <a
+            href="mailto:submissions@contemporaryfusionreviews.com"
+            data-ocid="footer.email.link"
+            className="group flex items-center gap-4 p-5 rounded-2xl border border-white/8 bg-white/4 backdrop-blur-md transition-all duration-300 hover:border-purple-400/50 hover:bg-purple-900/15 hover:shadow-[0_0_24px_rgba(124,58,237,0.2)]"
+          >
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:shadow-[0_0_18px_rgba(124,58,237,0.45)]"
+              style={{
+                background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+              }}
+            >
+              <Mail className="w-5 h-5 text-white" />
             </div>
-            <p className="text-white/50 text-sm leading-relaxed max-w-xs">
-              Your guide to contemporary jazz and world fusion music — in-depth
-              reviews, artist features, and live coverage from across the globe.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold text-xs mb-6 uppercase tracking-[0.15em]">
-              Categories
-            </h4>
-            <ul className="flex flex-col gap-2.5">
-              {categories.map((cat) => (
-                <li key={cat}>
-                  <a
-                    href="/#"
-                    className="text-white/48 hover:text-purple-300 text-sm transition-all duration-200 flex items-center gap-1.5 group"
-                  >
-                    <span className="w-1 h-1 rounded-full bg-purple-500/0 group-hover:bg-purple-400 transition-all duration-200 flex-shrink-0" />
-                    {cat}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold text-xs mb-6 uppercase tracking-[0.15em]">
-              Connect
-            </h4>
-            <div className="flex items-start gap-2.5 text-sm mb-6">
-              <Mail className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-              <a
-                href="mailto:submissions@contemporaryfusionreviews.com"
-                className="text-white/50 hover:text-purple-300 transition-colors duration-200 break-all leading-relaxed"
-              >
+            <div>
+              <p className="text-white/40 text-xs uppercase tracking-widest mb-0.5">
+                Submit / Press
+              </p>
+              <p className="text-white/75 text-sm font-medium group-hover:text-purple-300 transition-colors duration-200 break-all leading-relaxed">
                 submissions@
                 <br />
                 contemporaryfusionreviews.com
-              </a>
+              </p>
             </div>
-            <div className="flex items-center gap-2.5">
-              {socialLinks.map(({ Icon, label }) => (
-                <a
-                  key={label}
-                  href="/#"
-                  aria-label={label}
-                  className="w-10 h-10 rounded-full border border-white/12 flex items-center justify-center text-white/40 hover:text-purple-300 hover:border-purple-500/50 transition-all duration-200 hover:bg-purple-900/25 hover:scale-110"
-                >
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
-          </div>
+          </a>
 
-          <div>
-            <h4 className="text-white font-bold text-xs mb-2 uppercase tracking-[0.15em]">
-              Stay in the Loop
-            </h4>
-            <p className="text-white/42 text-xs mb-5 leading-relaxed">
-              Latest reviews and events, delivered to your inbox. No spam, ever.
-            </p>
-            <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
-              <div className="flex gap-2">
-                <Input
-                  data-ocid="footer.newsletter.input"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={status === "loading" || status === "success"}
-                  className="flex-1 min-w-0 bg-white/6 border-white/12 text-white placeholder:text-white/28 text-sm focus:border-purple-500/60 focus:bg-white/8 rounded-lg transition-all duration-200 min-h-[44px]"
-                />
-                <Button
-                  data-ocid="footer.newsletter.submit_button"
-                  type="submit"
-                  disabled={status === "loading" || status === "success"}
-                  className="rounded-lg text-white text-sm font-semibold transition-all duration-200 hover:scale-[1.04] disabled:opacity-50 px-3 min-h-[44px] flex-shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg, #7c3aed, #0ea5e9)",
-                  }}
-                >
-                  {status === "loading" ? (
-                    "..."
-                  ) : status === "success" ? (
-                    "✓"
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
+          {/* Social connect card */}
+          <div className="flex items-center gap-4 p-5 rounded-2xl border border-white/8 bg-white/4 backdrop-blur-md">
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #0ea5e9, #38bdf8)",
+              }}
+            >
+              <Headphones className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white/40 text-xs uppercase tracking-widest mb-2">
+                Follow Us
+              </p>
+              <div className="flex items-center gap-2">
+                {socialLinks.map(({ Icon, label }) => (
+                  <a
+                    key={label}
+                    href="/#"
+                    aria-label={label}
+                    className="w-11 h-11 rounded-full border border-white/12 flex items-center justify-center text-white/45 transition-all duration-300 hover:text-white hover:bg-gradient-to-br hover:from-purple-600/30 hover:to-sky-500/20 hover:border-purple-400/60 hover:shadow-[0_0_18px_rgba(124,58,237,0.35)] hover:scale-110"
+                  >
+                    <Icon className="w-4.5 h-4.5" />
+                  </a>
+                ))}
               </div>
-              {status === "success" && (
-                <p
-                  data-ocid="footer.newsletter.success_state"
-                  className="text-emerald-400 text-xs"
-                >
-                  ✓ You're subscribed! Welcome to the community.
-                </p>
-              )}
-              {status === "error" && (
-                <p
-                  data-ocid="footer.newsletter.error_state"
-                  className="text-red-400 text-xs"
-                >
-                  Something went wrong. Please try again.
-                </p>
-              )}
-            </form>
+            </div>
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/6 flex flex-col sm:flex-row justify-between items-center gap-4 text-white/30 text-xs">
-          <p>
-            © {new Date().getFullYear()} Contemporary Fusion Reviews. All rights
-            reserved.
+        {/* Newsletter CTA - frosted glass featured card */}
+        <div
+          className="relative max-w-2xl mx-auto rounded-2xl p-8 border border-white/10 backdrop-blur-md mb-20"
+          style={{ background: "rgba(255,255,255,0.04)" }}
+        >
+          <div
+            className="absolute top-0 left-0 right-0 h-px rounded-t-2xl"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, #a855f7 30%, #7c3aed 70%, transparent)",
+              boxShadow: "0 0 8px rgba(124,58,237,0.5)",
+            }}
+          />
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="text-white font-bold text-sm uppercase tracking-[0.15em]">
+              Stay in the Loop
+            </h4>
+            <div
+              className="flex-1 h-px"
+              style={{
+                background: "linear-gradient(90deg, #a855f7, transparent)",
+              }}
+            />
+          </div>
+          <p className="text-white/42 text-xs mb-5 leading-relaxed">
+            Latest reviews and events, delivered to your inbox. No spam, ever.
           </p>
-          <p className="flex items-center gap-1.5">
-            Built with <Heart className="w-3 h-3 text-purple-400" /> using{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-purple-400 hover:text-purple-300 transition-colors duration-200"
-            >
-              caffeine.ai
-            </a>
-          </p>
+          <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+            <div className="flex gap-2">
+              <Input
+                data-ocid="footer.newsletter.input"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={status === "loading" || status === "success"}
+                className="flex-1 min-w-0 bg-white/6 border-white/12 text-white placeholder:text-white/28 text-sm focus:border-purple-500/60 focus:bg-white/8 rounded-lg transition-all duration-200 min-h-[44px]"
+              />
+              <Button
+                data-ocid="footer.newsletter.submit_button"
+                type="submit"
+                disabled={status === "loading" || status === "success"}
+                className="rounded-lg text-white text-sm font-semibold transition-all duration-200 hover:scale-[1.04] disabled:opacity-50 px-4 min-h-[44px] flex-shrink-0"
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed, #0ea5e9)",
+                }}
+              >
+                {status === "loading" ? (
+                  "..."
+                ) : status === "success" ? (
+                  "✓"
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            {status === "success" && (
+              <p
+                data-ocid="footer.newsletter.success_state"
+                className="text-emerald-400 text-xs"
+              >
+                ✓ You're subscribed! Welcome to the community.
+              </p>
+            )}
+            {status === "error" && (
+              <p
+                data-ocid="footer.newsletter.error_state"
+                className="text-red-400 text-xs"
+              >
+                Something went wrong. Please try again.
+              </p>
+            )}
+          </form>
+        </div>
+
+        {/* Bottom bar with categories and copyright */}
+        <div className="border-t border-white/6 pt-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-4">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
+                  style={{
+                    background: "linear-gradient(135deg, #7c3aed, #38bdf8)",
+                  }}
+                >
+                  <Music className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-white font-bold text-sm">
+                  Contemporary{" "}
+                  <span className="gradient-text font-extrabold">Fusion</span>
+                </span>
+              </div>
+              <p className="text-white/40 text-xs leading-relaxed max-w-xs">
+                Your guide to contemporary jazz and world fusion music —
+                in-depth reviews, artist features, and live coverage from across
+                the globe.
+              </p>
+            </div>
+
+            {/* Categories */}
+            <div>
+              <h4 className="text-white font-bold text-xs mb-4 uppercase tracking-[0.15em]">
+                Categories
+              </h4>
+              <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
+                {categories.map((cat) => (
+                  <li key={cat}>
+                    <a
+                      href="/#"
+                      className="text-white/40 hover:text-purple-300 text-xs transition-all duration-200 flex items-center gap-1.5 group"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-purple-500/0 group-hover:bg-purple-400 transition-all duration-200 flex-shrink-0" />
+                      {cat}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Quick links */}
+            <div>
+              <h4 className="text-white font-bold text-xs mb-4 uppercase tracking-[0.15em]">
+                Explore
+              </h4>
+              <ul className="flex flex-col gap-2">
+                {["Home", "Reviews", "Events", "Contact"].map((link) => (
+                  <li key={link}>
+                    <a
+                      href={`#${link.toLowerCase()}`}
+                      className="text-white/40 hover:text-purple-300 text-xs transition-all duration-200 flex items-center gap-1.5 group"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-purple-500/0 group-hover:bg-purple-400 transition-all duration-200 flex-shrink-0" />
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-white/25 text-xs">
+            <p>
+              © {new Date().getFullYear()} Contemporary Fusion Reviews. All
+              rights reserved.
+            </p>
+            <p className="flex items-center gap-1.5">
+              Built with <Heart className="w-3 h-3 text-purple-400" /> using{" "}
+              <a
+                href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-400 hover:text-purple-300 transition-colors duration-200"
+              >
+                caffeine.ai
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
