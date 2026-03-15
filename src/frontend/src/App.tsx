@@ -1441,7 +1441,7 @@ function Footer() {
               }}
             />
           </div>
-          <p className="text-white/42 text-xs mb-5 leading-relaxed">
+          <p className="text-white text-xs mb-5 leading-relaxed">
             Latest reviews and events, delivered to your inbox. No spam, ever.
           </p>
           <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
